@@ -12,6 +12,16 @@ RUN echo 'Unattended-Upgrade::Allowed-Origins:: "LP-PPA-mozillateam:jammy";' | t
 RUN apt update -y && apt install -y firefox
 RUN apt update -y && apt install -y xubuntu-icon-theme
 RUN touch /root/.Xauthority
+
+# تثبيت أدوات فك الضغط (xarchiver) وتنزيل برنامج Otohits وتجهيزه تلقائياً على سطح المكتب
+RUN apt-get update && apt-get install -y wget tar gzip xarchiver && \
+    mkdir -p /root/Desktop/otohits && \
+    wget -O /root/Desktop/otohits/otohits.tar.gz https://www.otohits.net/dl/otohits-viewer-linux.tar.gz && \
+    tar -xzvf /root/Desktop/otohits/otohits.tar.gz -C /root/Desktop/otohits/ && \
+    chmod +x /root/Desktop/otohits/otohits-viewer
+
 EXPOSE 5901
 EXPOSE 6080
-CMD bash -c "vncserver -localhost no -SecurityTypes None -geometry 1024x768 --I-KNOW-THIS-IS-INSECURE && openssl req -new -subj "/C=JP" -x509 -days 365 -nodes -out self.pem -keyout self.pem && websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && tail -f /dev/null"
+
+# تشغيل الـ VNC والـ noVNC والسيرفر (مع إصلاح علامات التنصيص لـ Openssl)
+CMD bash -c "vncserver -localhost no -SecurityTypes None -geometry 1024x768 --I-KNOW-THIS-IS-INSECURE && openssl req -new -subj '/C=JP' -x509 -days 365 -nodes -out self.pem -keyout self.pem && websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && tail -f /dev/null"
